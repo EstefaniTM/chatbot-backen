@@ -26,24 +26,26 @@ import axios from 'axios';
 import { DataGrid } from '@mui/x-data-grid';
 import Papa from 'papaparse';
 
-const ChatbotInterface = () => {
+const ChatbotInterface = ({ preloadedData = null, fileName = '' }) => {
   const [messages, setMessages] = useState([
     {
       id: 1,
-      text: '¡Hola! Soy tu asistente de inventario. Puedes cargar un archivo CSV con tu inventario y luego preguntarme sobre productos, cantidades, etc.',
+      text: preloadedData 
+        ? `¡Hola! He cargado tu archivo "${fileName}" con ${preloadedData.length} productos. Puedes preguntarme sobre cantidades, productos específicos, o pedirme que muestre la tabla completa.`
+        : '¡Hola! Soy tu asistente de inventario. Puedes cargar un archivo CSV con tu inventario y luego preguntarme sobre productos, cantidades, etc.',
       sender: 'bot',
       timestamp: new Date(),
     },
   ]);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
-  const [inventoryData, setInventoryData] = useState([]);
+  const [inventoryData, setInventoryData] = useState(preloadedData || []);
   const [showTable, setShowTable] = useState(false);
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
 
   // URL de tu backend - ajusta según tu configuración
-  const BACKEND_URL = 'http://localhost:3001/api/chat';
+  const BACKEND_URL = 'http://localhost:3008/api/chat';
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -227,21 +229,30 @@ const ChatbotInterface = () => {
       <Paper elevation={1} sx={{ p: 2, mb: 2 }}>
         <Grid container spacing={2} alignItems="center">
           <Grid item xs={6}>
-            <Button
-              variant="contained"
-              startIcon={<UploadIcon />}
-              onClick={() => fileInputRef.current?.click()}
-              sx={{ mr: 2 }}
-            >
-              Cargar CSV
-            </Button>
-            <input
-              type="file"
-              accept=".csv"
-              style={{ display: 'none' }}
-              ref={fileInputRef}
-              onChange={handleFileUpload}
-            />
+            {!preloadedData && (
+              <>
+                <Button
+                  variant="contained"
+                  startIcon={<UploadIcon />}
+                  onClick={() => fileInputRef.current?.click()}
+                  sx={{ mr: 2 }}
+                >
+                  Cargar CSV
+                </Button>
+                <input
+                  type="file"
+                  accept=".csv"
+                  style={{ display: 'none' }}
+                  ref={fileInputRef}
+                  onChange={handleFileUpload}
+                />
+              </>
+            )}
+            {preloadedData && (
+              <Typography variant="h6" color="primary">
+                📄 {fileName}
+              </Typography>
+            )}
           </Grid>
           <Grid item xs={6} sx={{ textAlign: 'right' }}>
             {inventoryData.length > 0 && (

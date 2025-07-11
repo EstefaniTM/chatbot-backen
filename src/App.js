@@ -1,8 +1,11 @@
 import React from 'react';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
-import { Container, AppBar, Toolbar, Typography, Box } from '@mui/material';
-import ChatbotInterface from './components/ChatbotInterface';
+import { Box, CircularProgress } from '@mui/material';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
+import AuthForm from './components/AuthForm';
+import UserHeader from './components/UserHeader';
+import FileManager from './components/FileManager';
 
 const theme = createTheme({
   palette: {
@@ -20,26 +23,59 @@ const theme = createTheme({
     h4: {
       fontWeight: 600,
     },
+    h5: {
+      fontWeight: 600,
+    },
   },
 });
+
+// Componente principal de la aplicación autenticada
+const AuthenticatedApp = () => {
+  const { user, logout, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <Box 
+        sx={{ 
+          display: 'flex', 
+          justifyContent: 'center', 
+          alignItems: 'center', 
+          minHeight: '100vh' 
+        }}
+      >
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  return (
+    <>
+      <UserHeader user={user} onLogout={logout} />
+      <Box sx={{ minHeight: 'calc(100vh - 64px)' }}>
+        <FileManager />
+      </Box>
+    </>
+  );
+};
+
+// Componente principal de la aplicación
+const AppContent = () => {
+  const { isAuthenticated, login } = useAuth();
+
+  if (isAuthenticated) {
+    return <AuthenticatedApp />;
+  }
+
+  return <AuthForm onAuthSuccess={login} />;
+};
 
 function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <AppBar position="static" elevation={0}>
-        <Toolbar>
-          <Typography variant="h4" component="h1" sx={{ flexGrow: 1, textAlign: 'center' }}>
-            Sistema de Inventario Inteligente
-          </Typography>
-        </Toolbar>
-      </AppBar>
-      
-      <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-        <Box sx={{ height: '80vh' }}>
-          <ChatbotInterface />
-        </Box>
-      </Container>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
     </ThemeProvider>
   );
 }
