@@ -11,14 +11,22 @@ import {
   Divider,
   ListItemIcon,
   ListItemText,
+  Button,
+  Chip
 } from '@mui/material';
 import {
-  AccountCircle,
   Logout as LogoutIcon,
-  Dashboard as DashboardIcon,
+  Login,
+  PersonAdd,
+  Settings,
+  SmartToy,
+  Folder as FolderIcon,
+  ArrowBack
 } from '@mui/icons-material';
+import { useAuth } from '../contexts/AuthContext';
 
-const UserHeader = ({ user, onLogout }) => {
+const UserHeader = ({ onOpenAuth, onNavigateTo, currentPage }) => {
+  const { user, logout, isAuthenticated } = useAuth();
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
 
@@ -31,10 +39,8 @@ const UserHeader = ({ user, onLogout }) => {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('userData');
+    logout();
     handleClose();
-    onLogout();
   };
 
   const getInitials = (name) => {
@@ -46,81 +52,167 @@ const UserHeader = ({ user, onLogout }) => {
       .slice(0, 2) || '??';
   };
 
+  const getPageTitle = () => {
+    switch (currentPage) {
+      case 'files': return 'Mis Archivos CSV';
+      case 'settings': return 'Configuración';
+      default: return 'ChatBot Inventario';
+    }
+  };
+
   return (
-    <AppBar position="static" elevation={0}>
-      <Toolbar>
-        <DashboardIcon sx={{ mr: 2 }} />
-        <Typography variant="h5" component="h1" sx={{ flexGrow: 1 }}>
-          Sistema de Inventario Inteligente
-        </Typography>
-        
+    <AppBar 
+      position="static" 
+      elevation={1}
+      sx={{ 
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        backdropFilter: 'blur(10px)'
+      }}
+    >
+      <Toolbar sx={{ justifyContent: 'space-between' }}>
+        {/* Logo y navegación */}
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <Typography variant="body2" sx={{ display: { xs: 'none', sm: 'block' } }}>
-            Bienvenido, {user?.name || user?.email}
+          {currentPage !== 'chat' && (
+            <IconButton 
+              color="inherit" 
+              onClick={() => onNavigateTo('chat')}
+              sx={{ mr: 1 }}
+            >
+              <ArrowBack />
+            </IconButton>
+          )}
+          
+          <SmartToy sx={{ fontSize: 32 }} />
+          <Typography variant="h5" component="h1" sx={{ fontWeight: 600 }}>
+            {getPageTitle()}
           </Typography>
           
-          <IconButton
-            size="large"
-            onClick={handleMenu}
-            color="inherit"
-          >
-            <Avatar sx={{ bgcolor: 'secondary.main', width: 32, height: 32 }}>
-              {getInitials(user?.name || user?.email)}
-            </Avatar>
-          </IconButton>
-          
-          <Menu
-            anchorEl={anchorEl}
-            open={open}
-            onClose={handleClose}
-            onClick={handleClose}
-            PaperProps={{
-              elevation: 0,
-              sx: {
-                overflow: 'visible',
-                filter: 'drop-shadow(0px 2px 8px rgba(0,0,0,0.32))',
-                mt: 1.5,
-                '& .MuiAvatar-root': {
-                  width: 32,
-                  height: 32,
-                  ml: -0.5,
-                  mr: 1,
-                },
-                '&:before': {
-                  content: '""',
-                  display: 'block',
-                  position: 'absolute',
-                  top: 0,
-                  right: 14,
-                  width: 10,
-                  height: 10,
-                  bgcolor: 'background.paper',
-                  transform: 'translateY(-50%) rotate(45deg)',
-                  zIndex: 0,
-                },
-              },
-            }}
-            transformOrigin={{ horizontal: 'right', vertical: 'top' }}
-            anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
-          >
-            <MenuItem>
-              <ListItemIcon>
-                <AccountCircle fontSize="small" />
-              </ListItemIcon>
-              <ListItemText>
-                <Typography variant="body2">{user?.email}</Typography>
-              </ListItemText>
-            </MenuItem>
-            
-            <Divider />
-            
-            <MenuItem onClick={handleLogout}>
-              <ListItemIcon>
-                <LogoutIcon fontSize="small" />
-              </ListItemIcon>
-              <ListItemText>Cerrar Sesión</ListItemText>
-            </MenuItem>
-          </Menu>
+          {currentPage === 'chat' && (
+            <Chip 
+              label="AI Assistant" 
+              size="small" 
+              sx={{ 
+                background: 'rgba(255,255,255,0.2)', 
+                color: 'white',
+                fontWeight: 500
+              }} 
+            />
+          )}
+        </Box>
+
+        {/* Navegación central y usuario */}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          {/* Navegación principal */}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Button
+              startIcon={<FolderIcon />}
+              variant={currentPage === 'files' ? 'contained' : 'outlined'}
+              onClick={() => onNavigateTo('files')}
+              sx={{
+                color: 'white',
+                borderColor: 'rgba(255,255,255,0.5)',
+                backgroundColor: currentPage === 'files' ? 'rgba(255,255,255,0.2)' : 'transparent',
+                '&:hover': {
+                  borderColor: 'white',
+                  background: 'rgba(255,255,255,0.1)'
+                }
+              }}
+            >
+              Mis Archivos
+            </Button>
+          </Box>
+
+          {/* Área de usuario */}
+          {isAuthenticated ? (
+            <>
+              <IconButton
+                size="large"
+                edge="end"
+                aria-label="account of current user"
+                aria-controls="menu-appbar"
+                aria-haspopup="true"
+                onClick={handleMenu}
+                color="inherit"
+              >
+                <Avatar 
+                  src={user?.avatar} 
+                  alt={user?.name}
+                  sx={{ width: 36, height: 36 }}
+                >
+                  {getInitials(user?.name || user?.email)}
+                </Avatar>
+              </IconButton>
+              <Menu
+                id="menu-appbar"
+                anchorEl={anchorEl}
+                anchorOrigin={{
+                  vertical: 'bottom',
+                  horizontal: 'right',
+                }}
+                keepMounted
+                transformOrigin={{
+                  vertical: 'top',
+                  horizontal: 'right',
+                }}
+                open={open}
+                onClose={handleClose}
+                sx={{ mt: 1 }}
+              >
+                <Box sx={{ px: 2, py: 1, minWidth: 200 }}>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                    {user?.name}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    {user?.email}
+                  </Typography>
+                </Box>
+                <Divider />
+                <MenuItem onClick={handleClose}>
+                  <ListItemIcon>
+                    <Settings fontSize="small" />
+                  </ListItemIcon>
+                  <ListItemText>Configuración</ListItemText>
+                </MenuItem>
+                <MenuItem onClick={handleLogout}>
+                  <ListItemIcon>
+                    <LogoutIcon fontSize="small" />
+                  </ListItemIcon>
+                  <ListItemText>Cerrar Sesión</ListItemText>
+                </MenuItem>
+              </Menu>
+            </>
+          ) : (
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              <Button
+                startIcon={<Login />}
+                variant="outlined"
+                onClick={() => onOpenAuth('login')}
+                sx={{
+                  color: 'white',
+                  borderColor: 'rgba(255,255,255,0.5)',
+                  '&:hover': {
+                    borderColor: 'white',
+                    background: 'rgba(255,255,255,0.1)'
+                  }
+                }}
+              >
+                Iniciar Sesión
+              </Button>
+              <Button
+                startIcon={<PersonAdd />}
+                variant="contained"
+                onClick={() => onOpenAuth('register')}
+                sx={{
+                  background: 'rgba(255,255,255,0.2)',
+                  '&:hover': {
+                    background: 'rgba(255,255,255,0.3)'
+                  }
+                }}
+              >
+                Registrarse
+              </Button>
+            </Box>
+          )}
         </Box>
       </Toolbar>
     </AppBar>
