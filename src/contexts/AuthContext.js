@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 
 const AuthContext = createContext();
@@ -16,11 +16,18 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  useEffect(() => {
-    checkAuthStatus();
+  const logout = useCallback(() => {
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('userData');
+    
+    setUser(null);
+    setIsAuthenticated(false);
+    
+    // Remover token de axios
+    delete axios.defaults.headers.common['Authorization'];
   }, []);
 
-  const checkAuthStatus = () => {
+  const checkAuthStatus = useCallback(() => {
     try {
       const token = localStorage.getItem('authToken');
       const userData = localStorage.getItem('userData');
@@ -39,7 +46,11 @@ export const AuthProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [logout]);
+
+  useEffect(() => {
+    checkAuthStatus();
+  }, [checkAuthStatus]);
 
   const login = (authData) => {
     const { token, user: userData } = authData;
@@ -52,17 +63,6 @@ export const AuthProvider = ({ children }) => {
     
     // Configurar axios con el token
     axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-  };
-
-  const logout = () => {
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('userData');
-    
-    setUser(null);
-    setIsAuthenticated(false);
-    
-    // Remover token de axios
-    delete axios.defaults.headers.common['Authorization'];
   };
 
   const value = {
