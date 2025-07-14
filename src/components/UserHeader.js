@@ -198,19 +198,6 @@ const UserHeader = ({ onOpenAuth, onNavigateTo, currentPage }) => {
               >
                 Iniciar Sesión
               </Button>
-              <Button
-                startIcon={<PersonAdd />}
-                variant="contained"
-                onClick={() => onOpenAuth('register')}
-                sx={{
-                  background: 'rgba(255,255,255,0.2)',
-                  '&:hover': {
-                    background: 'rgba(255,255,255,0.3)'
-                  }
-                }}
-              >
-                Registrarse
-              </Button>
             </Box>
           )}
         </Box>
