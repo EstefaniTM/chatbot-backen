@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { 
   Dialog, 
   DialogContent, 
@@ -7,15 +7,10 @@ import {
 } from '@mui/material';
 import { Close as CloseIcon } from '@mui/icons-material';
 import LoginForm from './LoginForm';
-import RegisterForm from './RegisterForm';
 import { useAuth } from '../contexts/AuthContext';
 
-const AuthForm = ({ open, onClose, initialTab = 'login' }) => {
-  const [isLogin, setIsLogin] = useState(initialTab === 'login');
+const AuthForm = ({ open, onClose }) => {
   const { login } = useAuth();
-
-  const switchToRegister = () => setIsLogin(false);
-  const switchToLogin = () => setIsLogin(true);
 
   const handleAuthSuccess = (authData) => {
     login(authData);
@@ -43,18 +38,10 @@ const AuthForm = ({ open, onClose, initialTab = 'login' }) => {
           </IconButton>
         </Box>
 
-        {/* Contenido del formulario */}
-        {isLogin ? (
-          <LoginForm 
-            onAuthSuccess={handleAuthSuccess} 
-            onSwitchToRegister={switchToRegister} 
-          />
-        ) : (
-          <RegisterForm 
-            onAuthSuccess={handleAuthSuccess} 
-            onSwitchToLogin={switchToLogin} 
-          />
-        )}
+        {/* Solo el formulario de login */}
+        <LoginForm 
+          onAuthSuccess={handleAuthSuccess}
+        />
       </DialogContent>
     </Dialog>
   );
