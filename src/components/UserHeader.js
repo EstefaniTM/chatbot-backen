@@ -196,7 +196,7 @@ const UserHeader = ({ onOpenAuth, onNavigateTo, currentPage }) => {
                   }
                 }}
               >
-                Iniciar Sesión
+                Iniciar Sesión hjejejej
               </Button>
             </Box>
           )}
