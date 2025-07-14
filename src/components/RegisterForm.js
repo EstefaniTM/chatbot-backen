@@ -29,7 +29,7 @@ const RegisterForm = ({ onAuthSuccess, onSwitchToLogin }) => {
     confirmPassword: ''
   });
 
-  const BACKEND_URL = 'http://localhost:3008';
+  const BACKEND_URL = 'https://nestjs-chatbot-backeb-api.desarrollo-software.xyz';
 
   const handleInputChange = (e) => {
     setFormData({
@@ -73,11 +73,11 @@ const RegisterForm = ({ onAuthSuccess, onSwitchToLogin }) => {
         password: formData.password
       });
 
-      if (response.data.access_token) {
-        // Preparar datos para el contexto de autenticación
+      // Ajuste aquí: accede a response.data.data
+      if (response.data.data?.access_token) {
         const authData = {
-          token: response.data.access_token,
-          user: response.data.user
+          token: response.data.data.access_token,
+          user: response.data.data.user
         };
         onAuthSuccess(authData);
       }
