@@ -62,6 +62,8 @@ const FileManager = () => {
         setLoadingFiles(true);
         const response = await axios.get(API_URL);
         console.log('Archivos recibidos:', response.data);
+        // Mostrar los datos recibidos en consola para depuración
+        console.log('Datos completos recibidos del backend:', JSON.stringify(response.data, null, 2));
         setCsvFiles(response.data);
       } catch (error) {
         console.error('Error cargando archivos desde el backend', error);
@@ -87,6 +89,7 @@ const FileManager = () => {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       const response = await axios.get(API_URL);
+      console.log('Archivos después de subir:', response.data);
       setCsvFiles(response.data);
     } catch (error) {
       console.error('Error subiendo archivo', error);
@@ -270,7 +273,7 @@ const FileManager = () => {
               )}
             </Grid>
             {csvFiles.map((file) => (
-              <Grid item xs={12} sm={6} md={4} key={file.filename}>
+              <Grid item xs={12} sm={6} lg={4} key={file.filename}>
                 <Card elevation={2} sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
                   <CardContent sx={{ flex: 1 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>

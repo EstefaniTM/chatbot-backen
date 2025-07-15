@@ -33,12 +33,21 @@ export const AuthProvider = ({ children }) => {
       const userData = localStorage.getItem('userData');
 
       if (token && userData) {
-        const parsedUser = JSON.parse(userData);
-        setUser(parsedUser);
-        setIsAuthenticated(true);
-        
-        // Configurar axios con el token
-        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+        let parsedUser = null;
+        try {
+          parsedUser = JSON.parse(userData);
+        } catch (e) {
+          console.warn('userData no es un JSON válido:', e);
+          parsedUser = null;
+        }
+        if (parsedUser) {
+          setUser(parsedUser);
+          setIsAuthenticated(true);
+          // Configurar axios con el token
+          axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+        } else {
+          logout();
+        }
       }
     } catch (error) {
       console.error('Error checking auth status:', error);

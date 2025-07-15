@@ -32,6 +32,7 @@ import {
 } from '@mui/icons-material';
 import { DataGrid } from '@mui/x-data-grid';
 import Papa from 'papaparse';
+import axios from 'axios';
 
 const FilesPage = ({ onFileLoaded }) => {
   const [files, setFiles] = useState([]);
@@ -47,11 +48,13 @@ const FilesPage = ({ onFileLoaded }) => {
     processFiles(selectedFiles);
   };
 
+  const API_URL = 'https://nestjs-chatbot-backeb-api.desarrollo-software.xyz/csv-uploads';
+
   const processFiles = (fileList) => {
     setUploading(true);
     setError('');
 
-    fileList.forEach((file) => {
+    fileList.forEach(async (file) => {
       if (file.type !== 'text/csv') {
         setError('Solo se permiten archivos CSV');
         setUploading(false);
@@ -63,7 +66,7 @@ const FilesPage = ({ onFileLoaded }) => {
         name: file.name,
         size: file.size,
         uploadDate: new Date(),
-        status: 'processing',
+        status: 'subiendo',
         data: null,
         headers: null,
         error: null
@@ -71,43 +74,50 @@ const FilesPage = ({ onFileLoaded }) => {
 
       setFiles(prev => [fileObj, ...prev]);
 
-      Papa.parse(file, {
-        complete: (results) => {
-          if (results.errors.length > 0) {
-            setFiles(prev => prev.map(f => 
-              f.id === fileObj.id 
-                ? { ...f, status: 'error', error: 'Error al procesar el archivo CSV' }
-                : f
-            ));
-          } else {
-            const headers = results.data[0];
-            const rows = results.data.slice(1).filter(row => row.some(cell => cell)).map((row, index) => {
-              const rowObject = { id: index };
-              headers.forEach((header, i) => {
-                rowObject[header] = row[i] || '';
-              });
-              return rowObject;
-            });
+      // Subir al backend
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('filename', file.name);
+      formData.append('originalname', file.name);
+      formData.append('uploadedBy', 'usuario@ejemplo.com'); // Cambia por el usuario real si lo tienes
 
-            setFiles(prev => prev.map(f => 
-              f.id === fileObj.id 
-                ? { ...f, status: 'success', data: rows, headers: headers, rowCount: rows.length }
-                : f
-            ));
-          }
-          setUploading(false);
-        },
-        header: false,
-        skipEmptyLines: true,
-        error: (error) => {
-          setFiles(prev => prev.map(f => 
-            f.id === fileObj.id 
-              ? { ...f, status: 'error', error: error.message }
+      // Mostrar en consola lo que se envía
+      for (let pair of formData.entries()) {
+        console.log('FormData enviado:', pair[0], pair[1]);
+      }
+
+      try {
+        const uploadResponse = await axios.post(API_URL, formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        console.log('Respuesta del backend al subir:', uploadResponse.data);
+        // Obtener la lista actualizada del backend
+        const response = await axios.get(API_URL);
+        console.log('Lista de archivos en backend:', response.data);
+        // Buscar el archivo recién subido
+        const uploaded = response.data.find(f => f.originalname === file.name);
+        if (uploaded) {
+          setFiles(prev => prev.map(f =>
+            f.id === fileObj.id
+              ? { ...f, status: 'success', rowCount: uploaded.rowCount || 0, backendId: uploaded._id, uploadedBy: uploaded.uploadedBy, data: null, headers: null }
               : f
           ));
-          setUploading(false);
+        } else {
+          setFiles(prev => prev.map(f =>
+            f.id === fileObj.id
+              ? { ...f, status: 'error', error: 'No se pudo verificar la subida en el backend' }
+              : f
+          ));
         }
-      });
+      } catch (error) {
+        setFiles(prev => prev.map(f =>
+          f.id === fileObj.id
+            ? { ...f, status: 'error', error: 'Error al subir el archivo al backend' }
+            : f
+        ));
+      } finally {
+        setUploading(false);
+      }
     });
   };
 
@@ -273,7 +283,7 @@ const FilesPage = ({ onFileLoaded }) => {
       ) : (
         <Grid container spacing={3}>
           {filteredFiles.map((file) => (
-            <Grid item xs={12} sm={6} md={4} key={file.id}>
+            <Grid item xs={12} sm={6} lg={4} key={file.id}>
               <Card 
                 elevation={2} 
                 sx={{ 

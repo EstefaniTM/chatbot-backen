@@ -23,7 +23,7 @@ const LoginForm = ({ onAuthSuccess, onSwitchToRegister }) => {
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
-    email: '',
+    username: '',
     password: ''
   });
 
@@ -38,12 +38,12 @@ const LoginForm = ({ onAuthSuccess, onSwitchToRegister }) => {
   };
 
   const validateForm = () => {
-    if (!formData.email || !formData.password) {
-      setError('Email y contraseña son requeridos');
+    if (!formData.username || !formData.password) {
+      setError('Usuario y contraseña son requeridos');
       return false;
     }
     return true;
-  };
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -54,33 +54,34 @@ const LoginForm = ({ onAuthSuccess, onSwitchToRegister }) => {
     setError('');
 
     try {
-  const response = await axios.post(`${BACKEND_URL}/auth/login`, {
-    username: formData.email,
-    password: formData.password
-  });
+    console.log('LOGIN DATA:', formData); // <-- Aquí agregas el log
+    const response = await axios.post(`${BACKEND_URL}/auth/login`, {
+      username: formData.username,
+      password: formData.password
+    });
 
-  console.log('RESPUESTA LOGIN:', response.data); // <-- Depura la respuesta
+      console.log('RESPUESTA LOGIN:', response.data); // <-- Depura la respuesta
 
-  if (response.data.data?.access_token) {
-    const authData = {
-      token: response.data.data.access_token,
-      user: response.data.data.user
-    };
-    onAuthSuccess(authData);
-  } else if (response.data.access_token) {
-    const authData = {
-      token: response.data.access_token,
-      user: response.data.user
-    };
-    onAuthSuccess(authData);
-  } else {
-    setError('No se recibió token de autenticación');
-  }
-} catch (error) {
-  setError(error.response?.data?.message || 'Error en el login');
-} finally {
-  setLoading(false);
-}
+      if (response.data.data?.access_token) {
+        const authData = {
+          token: response.data.data.access_token,
+          user: response.data.data.user
+        };
+        onAuthSuccess(authData);
+      } else if (response.data.access_token) {
+        const authData = {
+          token: response.data.access_token,
+          user: response.data.user
+        };
+        onAuthSuccess(authData);
+      } else {
+        setError('No se recibió token de autenticación');
+      }
+    } catch (error) {
+      setError(error.response?.data?.message || 'Error en el login');
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -103,9 +104,9 @@ const LoginForm = ({ onAuthSuccess, onSwitchToRegister }) => {
         <TextField
           fullWidth
           label="Email"
-          name="email"
-          type="email"
-          value={formData.email}
+          name="username"
+          type="text"
+          value={formData.username}
           onChange={handleInputChange}
           margin="normal"
           InputProps={{
