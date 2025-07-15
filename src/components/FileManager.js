@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import {
   Paper,
   Box,
@@ -15,6 +16,7 @@ import {
   IconButton,
   Chip,
   Divider,
+  CircularProgress
 } from '@mui/material';
 import {
   Upload as UploadIcon,
@@ -22,79 +24,139 @@ import {
   Delete as DeleteIcon,
   TableChart as TableIcon,
   Description as FileIcon,
+  Visibility as VisibilityIcon,
 } from '@mui/icons-material';
 import ChatbotInterface from './ChatbotInterface';
-import Papa from 'papaparse';
+
+const API_URL = 'https://nestjs-chatbot-backeb-api.desarrollo-software.xyz/csv-uploads';
 
 const FileManager = () => {
   const [csvFiles, setCsvFiles] = useState([]);
+  const [selectedCsvIds, setSelectedCsvIds] = useState([]);
   const [selectedFile, setSelectedFile] = useState(null);
   const [showChat, setShowChat] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [previewData, setPreviewData] = useState([]);
+  const [showFileModal, setShowFileModal] = useState(false);
+  const [fileModalData, setFileModalData] = useState([]);
+  const [fileModalFile, setFileModalFile] = useState(null);
+  const [loadingChat, setLoadingChat] = useState(false);
+  const [loadingFiles, setLoadingFiles] = useState(true);
 
-  // Cargar archivos guardados al iniciar
-  useEffect(() => {
-    const savedFiles = JSON.parse(localStorage.getItem('csvFiles') || '[]');
-    setCsvFiles(savedFiles);
-  }, []);
-
-  // Guardar archivos en localStorage
-  const saveFilesToStorage = (files) => {
-    localStorage.setItem('csvFiles', JSON.stringify(files));
-  };
-
-  const handleFileUpload = (event) => {
-    const file = event.target.files[0];
-    if (file && file.type === 'text/csv') {
-      Papa.parse(file, {
-        complete: (results) => {
-          if (results.data && results.data.length > 0) {
-            const headers = results.data[0];
-            const rows = results.data.slice(1).map((row, index) => {
-              const rowObject = { id: index };
-              headers.forEach((header, i) => {
-                rowObject[header] = row[i];
-              });
-              return rowObject;
-            });
-
-            const newFile = {
-              id: Date.now(),
-              name: file.name,
-              uploadDate: new Date().toISOString(),
-              rowCount: rows.length,
-              headers: headers,
-              data: rows,
-            };
-
-            const updatedFiles = [...csvFiles, newFile];
-            setCsvFiles(updatedFiles);
-            saveFilesToStorage(updatedFiles);
-          }
-        },
-        header: false,
-        skipEmptyLines: true,
-      });
+  // Mostrar archivo completo en modal
+  const handleShowFile = async (file) => {
+    try {
+      const response = await axios.get(`${API_URL}/${file.filename}`);
+      setFileModalData(response.data || []);
+      setFileModalFile(file);
+      setShowFileModal(true);
+    } catch (error) {
+      console.error('Error mostrando archivo', error);
     }
   };
 
-  const handleDeleteFile = (fileId) => {
-    const updatedFiles = csvFiles.filter(file => file.id !== fileId);
-    setCsvFiles(updatedFiles);
-    saveFilesToStorage(updatedFiles);
+  // Cargar archivos desde el backend al iniciar
+  useEffect(() => {
+    const fetchFiles = async () => {
+      try {
+        setLoadingFiles(true);
+        const response = await axios.get(API_URL);
+        console.log('Archivos recibidos:', response.data);
+        setCsvFiles(response.data);
+      } catch (error) {
+        console.error('Error cargando archivos desde el backend', error);
+      } finally {
+        setLoadingFiles(false);
+      }
+    };
+    fetchFiles();
+  }, []);
+
+  // Subir archivo al backend
+  const handleFileUpload = async (event) => {
+  const file = event.target.files[0];
+  if (file && file.type === 'text/csv') {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('filename', file.name);
+    formData.append('originalname', file.name);
+    formData.append('uploadedBy', 'usuario@ejemplo.com'); // <-- pon aquí el usuario real si lo tienes
+    try {
+      setLoadingFiles(true);
+      await axios.post(API_URL, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      const response = await axios.get(API_URL);
+      setCsvFiles(response.data);
+    } catch (error) {
+      console.error('Error subiendo archivo', error);
+    } finally {
+      setLoadingFiles(false);
+    }
+  }
+};
+
+  // Eliminar archivo del backend
+  const handleDeleteFile = async (filename) => {
+    try {
+      setLoadingFiles(true);
+      // Buscar el id del archivo por filename
+      const file = csvFiles.find(f => f.filename === filename);
+      if (!file || !file._id) throw new Error('No se encontró el id del archivo');
+      await axios.post(`${API_URL}/delete-many`, { ids: [file._id] });
+      setCsvFiles(csvFiles.filter(f => f._id !== file._id));
+      setSelectedCsvIds(selectedCsvIds.filter(id => id !== file._id));
+    } catch (error) {
+      console.error('Error eliminando archivo', error);
+    } finally {
+      setLoadingFiles(false);
+    }
+  // Eliminar múltiples archivos seleccionados
+  const handleDeleteSelected = async () => {
+    if (selectedCsvIds.length === 0) return;
+    try {
+      setLoadingFiles(true);
+      await axios.post(`${API_URL}/delete-many`, { ids: selectedCsvIds });
+      setCsvFiles(csvFiles.filter(f => !selectedCsvIds.includes(f._id)));
+      setSelectedCsvIds([]);
+    } catch (error) {
+      console.error('Error eliminando archivos seleccionados', error);
+    } finally {
+      setLoadingFiles(false);
+    }
+  };
   };
 
-  const handleOpenChat = (file) => {
-    setSelectedFile(file);
-    setShowChat(true);
+  // Abrir chat con archivo seleccionado
+  const handleOpenChat = async (file) => {
+    try {
+      setLoadingChat(true);
+      const response = await axios.get(`${API_URL}/${file.filename}`);
+      console.log('Datos para chat:', response.data);
+      setSelectedFile({
+        ...file,
+        data: response.data || [],
+      });
+      setShowChat(true);
+    } catch (error) {
+      console.error('Error obteniendo datos del archivo', error);
+    } finally {
+      setLoadingChat(false);
+    }
   };
 
-  const handlePreviewFile = (file) => {
-    setPreviewData(file.data.slice(0, 10)); // Mostrar solo las primeras 10 filas
-    setShowPreview(true);
+  // Vista previa del archivo
+  const handlePreviewFile = async (file) => {
+    try {
+      const response = await axios.get(`${API_URL}/${file.filename}`);
+      setPreviewData(response.data?.slice(0, 10) || []);
+      setShowPreview(true);
+    } catch (error) {
+      console.error('Error obteniendo datos para vista previa', error);
+    }
   };
 
+  // Formatear fecha
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('es-ES', {
       year: 'numeric',
@@ -105,17 +167,17 @@ const FileManager = () => {
     });
   };
 
+  // Renderizar chat si está activo
   if (showChat && selectedFile) {
     return (
       <Box sx={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
-        {/* Header del chat */}
         <Paper elevation={1} sx={{ p: 2, mb: 1 }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
               <FileIcon color="primary" />
-              <Typography variant="h6">{selectedFile.name}</Typography>
+              <Typography variant="h6">{selectedFile.originalname}</Typography>
               <Chip 
-                label={`${selectedFile.rowCount} productos`} 
+                label={`Estado: ${selectedFile.status}`} 
                 size="small" 
                 color="primary" 
                 variant="outlined" 
@@ -129,18 +191,16 @@ const FileManager = () => {
             </Button>
           </Box>
         </Paper>
-        
-        {/* Chat interface */}
         <Box sx={{ flex: 1 }}>
-          <ChatbotInterface preloadedData={selectedFile.data} fileName={selectedFile.name} />
+          <ChatbotInterface preloadedData={selectedFile.data} fileName={selectedFile.originalname} />
         </Box>
       </Box>
     );
   }
 
+  // Renderizar gestor de archivos
   return (
     <Box sx={{ p: 3, maxWidth: 1200, mx: 'auto' }}>
-      {/* Header */}
       <Box sx={{ mb: 4 }}>
         <Typography variant="h4" component="h1" gutterBottom>
           Gestor de Inventarios CSV
@@ -150,7 +210,6 @@ const FileManager = () => {
         </Typography>
       </Box>
 
-      {/* Upload Section */}
       <Paper elevation={2} sx={{ p: 3, mb: 4 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
           <UploadIcon color="primary" />
@@ -177,8 +236,11 @@ const FileManager = () => {
 
       <Divider sx={{ mb: 4 }} />
 
-      {/* Files Grid */}
-      {csvFiles.length === 0 ? (
+      {loadingFiles ? (
+        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+          <CircularProgress />
+        </Box>
+      ) : csvFiles.length === 0 ? (
         <Paper elevation={1} sx={{ p: 4, textAlign: 'center' }}>
           <FileIcon sx={{ fontSize: 64, color: 'text.secondary', mb: 2 }} />
           <Typography variant="h6" color="text.secondary" gutterBottom>
@@ -194,47 +256,54 @@ const FileManager = () => {
             Archivos CSV ({csvFiles.length})
           </Typography>
           <Grid container spacing={3}>
+            {/* Botón para eliminar seleccionados */}
+            <Grid item xs={12} sx={{ mb: 2 }}>
+              {selectedCsvIds.length > 0 && (
+                <Button
+                  variant="contained"
+                  color="error"
+                  onClick={handleDeleteSelected}
+                  sx={{ mb: 2 }}
+                >
+                  Eliminar seleccionados ({selectedCsvIds.length})
+                </Button>
+              )}
+            </Grid>
             {csvFiles.map((file) => (
-              <Grid item xs={12} sm={6} md={4} key={file.id}>
+              <Grid item xs={12} sm={6} md={4} key={file.filename}>
                 <Card elevation={2} sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
                   <CardContent sx={{ flex: 1 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
                       <FileIcon color="primary" />
                       <Typography variant="h6" component="div" noWrap>
-                        {file.name}
+                        {file.originalname}
                       </Typography>
+                      <Checkbox
+                        checked={selectedCsvIds.includes(file._id)}
+                        onChange={e => {
+                          if (e.target.checked) {
+                            setSelectedCsvIds(ids => [...ids, file._id]);
+                          } else {
+                            setSelectedCsvIds(ids => ids.filter(id => id !== file._id));
+                          }
+                        }}
+                        color="primary"
+                        sx={{ ml: 1 }}
+                      />
                     </Box>
-                    
                     <Typography variant="body2" color="text.secondary" gutterBottom>
-                      Subido: {formatDate(file.uploadDate)}
+                      Estado: {file.status}
                     </Typography>
-                    
-                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
-                      <Chip 
-                        label={`${file.rowCount} productos`} 
-                        size="small" 
-                        color="primary" 
-                        variant="outlined" 
-                      />
-                      <Chip 
-                        label={`${file.headers.length} columnas`} 
-                        size="small" 
-                        color="secondary" 
-                        variant="outlined" 
-                      />
-                    </Box>
-
                     <Typography variant="body2" color="text.secondary">
-                      Columnas: {file.headers.slice(0, 3).join(', ')}
-                      {file.headers.length > 3 && '...'}
+                      Subido por: {file.uploadedBy}
                     </Typography>
                   </CardContent>
-
                   <CardActions sx={{ p: 2, pt: 0 }}>
                     <Button
                       size="small"
-                      startIcon={<ChatIcon />}
+                      startIcon={loadingChat ? <CircularProgress size={20} color="inherit" /> : <ChatIcon />}
                       onClick={() => handleOpenChat(file)}
+                      disabled={loadingChat}
                       variant="contained"
                     >
                       Chatear
@@ -248,8 +317,16 @@ const FileManager = () => {
                     </Button>
                     <IconButton
                       size="small"
+                      color="primary"
+                      onClick={() => handleShowFile(file)}
+                      aria-label="Ver archivo"
+                    >
+                      <VisibilityIcon />
+                    </IconButton>
+                    <IconButton
+                      size="small"
                       color="error"
-                      onClick={() => handleDeleteFile(file.id)}
+                      onClick={() => handleDeleteFile(file.filename)}
                     >
                       <DeleteIcon />
                     </IconButton>
@@ -261,7 +338,6 @@ const FileManager = () => {
         </>
       )}
 
-      {/* Preview Dialog */}
       <Dialog 
         open={showPreview} 
         onClose={() => setShowPreview(false)}
@@ -270,12 +346,12 @@ const FileManager = () => {
       >
         <DialogTitle>Vista previa del archivo</DialogTitle>
         <DialogContent>
-          {previewData.length > 0 && (
+          {previewData.length > 0 ? (
             <Box sx={{ overflowX: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
                   <tr>
-                    {Object.keys(previewData[0]).filter(key => key !== 'id').map((header) => (
+                    {Object.keys(previewData[0] || {}).map((header) => (
                       <th key={header} style={{ 
                         border: '1px solid #ddd', 
                         padding: '8px', 
@@ -290,7 +366,7 @@ const FileManager = () => {
                 <tbody>
                   {previewData.map((row, index) => (
                     <tr key={index}>
-                      {Object.entries(row).filter(([key]) => key !== 'id').map(([key, value]) => (
+                      {Object.entries(row).map(([key, value]) => (
                         <td key={key} style={{ 
                           border: '1px solid #ddd', 
                           padding: '8px' 
@@ -303,10 +379,83 @@ const FileManager = () => {
                 </tbody>
               </table>
             </Box>
+          ) : (
+            <Typography>No hay datos para mostrar.</Typography>
           )}
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setShowPreview(false)}>Cerrar</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Modal para ver archivo completo */}
+      <Dialog
+        open={showFileModal}
+        onClose={() => setShowFileModal(false)}
+        maxWidth="lg"
+        fullWidth
+      >
+        <DialogTitle>Archivo completo: {fileModalFile?.originalname}</DialogTitle>
+        <DialogContent>
+          {fileModalData.length > 0 ? (
+            <Box sx={{ maxHeight: '60vh', overflow: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr>
+                    {Object.keys(fileModalData[0] || {}).map((header) => (
+                      <th key={header} style={{
+                        border: '1px solid #ddd',
+                        padding: '8px',
+                        backgroundColor: '#e0e0e0',
+                        textAlign: 'left',
+                        position: 'sticky',
+                        top: 0
+                      }}>
+                        {header}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {fileModalData.map((row, index) => (
+                    <tr key={index}>
+                      {Object.entries(row).map(([key, value]) => (
+                        <td key={key} style={{
+                          border: '1px solid #ddd',
+                          padding: '8px'
+                        }}>
+                          {value}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </Box>
+          ) : (
+            <Typography>No hay datos para mostrar.</Typography>
+          )}
+        </DialogContent>
+        <DialogActions>
+          {fileModalFile && (
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={() => {
+                setShowFileModal(false);
+                setTimeout(() => {
+                  setSelectedFile({
+                    ...fileModalFile,
+                    data: fileModalData,
+                  });
+                  setShowChat(true);
+                }, 200);
+              }}
+            >
+              Usar en el chat
+            </Button>
+          )}
+          <Button onClick={() => setShowFileModal(false)}>Cerrar</Button>
         </DialogActions>
       </Dialog>
     </Box>

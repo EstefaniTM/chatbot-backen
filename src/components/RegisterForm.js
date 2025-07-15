@@ -24,6 +24,7 @@ const RegisterForm = ({ onAuthSuccess, onSwitchToLogin }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [formData, setFormData] = useState({
+    username: '',
     email: '',
     password: '',
     confirmPassword: ''
@@ -40,8 +41,8 @@ const RegisterForm = ({ onAuthSuccess, onSwitchToLogin }) => {
   };
 
   const validateForm = () => {
-    if (!formData.email || !formData.password) {
-      setError('Email y contraseña son requeridos');
+    if (!formData.username || !formData.email || !formData.password) {
+      setError('Nombre de usuario, email y contraseña son requeridos');
       return false;
     }
 
@@ -68,18 +69,29 @@ const RegisterForm = ({ onAuthSuccess, onSwitchToLogin }) => {
 
     try {
       const response = await axios.post(`${BACKEND_URL}/auth/register`, {
-        username: formData.email,
+        username: formData.username,
         email: formData.email,
         password: formData.password
       });
 
-      // Ajuste aquí: accede a response.data.data
+      // Depura la respuesta real del backend
+      console.log('RESPUESTA DEL BACKEND:', response.data);
+
+      // Ajusta aquí según la respuesta real
       if (response.data.data?.access_token) {
         const authData = {
           token: response.data.data.access_token,
           user: response.data.data.user
         };
         onAuthSuccess(authData);
+      } else if (response.data.access_token) {
+        const authData = {
+          token: response.data.access_token,
+          user: response.data.user
+        };
+        onAuthSuccess(authData);
+      } else {
+        setError('No se recibió token de autenticación');
       }
     } catch (error) {
       setError(error.response?.data?.message || 'Error en el registro');
@@ -105,6 +117,16 @@ const RegisterForm = ({ onAuthSuccess, onSwitchToLogin }) => {
       )}
 
       <form onSubmit={handleSubmit}>
+        <TextField
+          fullWidth
+          label="Nombre de usuario"
+          name="username"
+          type="text"
+          value={formData.username}
+          onChange={handleInputChange}
+          margin="normal"
+        />
+
         <TextField
           fullWidth
           label="Email"

@@ -27,7 +27,7 @@ const LoginForm = ({ onAuthSuccess, onSwitchToRegister }) => {
     password: ''
   });
 
-  const BACKEND_URL = 'http://localhost:3008';
+  const BACKEND_URL = 'https://nestjs-chatbot-backeb-api.desarrollo-software.xyz';
 
   const handleInputChange = (e) => {
     setFormData({
@@ -54,25 +54,34 @@ const LoginForm = ({ onAuthSuccess, onSwitchToRegister }) => {
     setError('');
 
     try {
-      const response = await axios.post(`${BACKEND_URL}/auth/login`, {
-        username: formData.email,
-        password: formData.password
-      });
+  const response = await axios.post(`${BACKEND_URL}/auth/login`, {
+    username: formData.email,
+    password: formData.password
+  });
 
-      if (response.data.access_token) {
-        // Preparar datos para el contexto de autenticación
-        const authData = {
-          token: response.data.access_token,
-          user: response.data.user
-        };
-        onAuthSuccess(authData);
-      }
-    } catch (error) {
-      setError(error.response?.data?.message || 'Error en el login');
-    } finally {
-      setLoading(false);
-    }
-  };
+  console.log('RESPUESTA LOGIN:', response.data); // <-- Depura la respuesta
+
+  if (response.data.data?.access_token) {
+    const authData = {
+      token: response.data.data.access_token,
+      user: response.data.data.user
+    };
+    onAuthSuccess(authData);
+  } else if (response.data.access_token) {
+    const authData = {
+      token: response.data.access_token,
+      user: response.data.user
+    };
+    onAuthSuccess(authData);
+  } else {
+    setError('No se recibió token de autenticación');
+  }
+} catch (error) {
+  setError(error.response?.data?.message || 'Error en el login');
+} finally {
+  setLoading(false);
+}
+  }
 
   return (
     <Box sx={{ p: 4 }}>

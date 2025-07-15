@@ -118,7 +118,7 @@ const UserHeader = ({ onOpenAuth, onNavigateTo, currentPage }) => {
                 }
               }}
             >
-              Mis Archivos
+              Mis Archivos scec
             </Button>
           </Box>
 

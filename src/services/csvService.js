@@ -29,7 +29,11 @@ export const csvService = {
   // Crear/subir un nuevo archivo CSV
   uploadCsvFile: async (csvData) => {
     try {
-      const response = await axios.post(API_BASE, csvData);
+      const response = await axios.post(API_BASE, csvData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
       return response.data;
     } catch (error) {
       console.error('Error subiendo archivo CSV:', error);

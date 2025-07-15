@@ -40,6 +40,21 @@ const ChatbotInterface = ({ preloadedData = null, fileName = '' }) => {
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [inventoryData, setInventoryData] = useState(preloadedData || []);
+
+  // Reiniciar chat cuando cambian los datos o el nombre del archivo
+  useEffect(() => {
+    setMessages([
+      {
+        id: 1,
+        text: preloadedData
+          ? `¡Hola! He cargado tu archivo "${fileName}" con ${preloadedData.length} productos. Puedes preguntarme sobre cantidades, productos específicos, o pedirme que muestre la tabla completa.`
+          : '¡Hola! Soy tu asistente de inventario. Puedes cargar un archivo CSV con tu inventario y luego preguntarme sobre productos, cantidades, etc.',
+        sender: 'bot',
+        timestamp: new Date(),
+      },
+    ]);
+    setInventoryData(preloadedData || []);
+  }, [preloadedData, fileName]);
   const [showTable, setShowTable] = useState(false);
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
