@@ -27,7 +27,7 @@ const Chatbot = () => {
   const messagesEndRef = useRef(null);
 
   // URL de tu backend - ajusta esta URL según tu configuración
-  const BACKEND_URL = 'http://localhost:3008/api/chat'; // Corregido al puerto 3008
+  const BACKEND_URL = 'https://nestjs-chatbot-backeb-api.desarrollo-software.xyz'; // Corregido al puerto 3008
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });

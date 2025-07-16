@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useAuth } from '../contexts/AuthContext';
 import axios from 'axios';
 import {
   Paper,
@@ -31,6 +32,15 @@ import ChatbotInterface from './ChatbotInterface';
 const API_URL = 'https://nestjs-chatbot-backeb-api.desarrollo-software.xyz/csv-uploads';
 
 const FileManager = () => {
+  const { isAuthenticated, loading: authLoading, user, token } = useAuth();
+  // Mostrar loader si el usuario aún no está listo
+  if (authLoading || !isAuthenticated || !user || !token) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
   const [csvFiles, setCsvFiles] = useState([]);
   const [selectedCsvIds, setSelectedCsvIds] = useState([]);
   const [selectedFile, setSelectedFile] = useState(null);
@@ -46,7 +56,9 @@ const FileManager = () => {
   // Mostrar archivo completo en modal
   const handleShowFile = async (file) => {
     try {
-      const response = await axios.get(`${API_URL}/${file.filename}`);
+      const response = await axios.get(`${API_URL}/${file.filename}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       setFileModalData(response.data || []);
       setFileModalFile(file);
       setShowFileModal(true);
@@ -55,16 +67,20 @@ const FileManager = () => {
     }
   };
 
-  // Cargar archivos desde el backend al iniciar
+  // Cargar archivos desde el backend solo si el usuario está autenticado y el AuthContext está listo
   useEffect(() => {
+    if (authLoading || !isAuthenticated || !token) return;
     const fetchFiles = async () => {
       try {
         setLoadingFiles(true);
-        const response = await axios.get(API_URL);
-        console.log('Archivos recibidos:', response.data);
-        // Mostrar los datos recibidos en consola para depuración
-        console.log('Datos completos recibidos del backend:', JSON.stringify(response.data, null, 2));
-        setCsvFiles(response.data);
+        const response = await axios.get(API_URL, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        console.info('[FileManager] Archivos recibidos:', response.data);
+        // Depuración avanzada: mostrar estructura completa
+        console.info('[FileManager] Datos completos del backend:', response.data);
+        // El backend responde con { message, data: { data: [...], total } }
+        setCsvFiles(response.data.data);
       } catch (error) {
         console.error('Error cargando archivos desde el backend', error);
       } finally {
@@ -72,32 +88,37 @@ const FileManager = () => {
       }
     };
     fetchFiles();
-  }, []);
+  }, [authLoading, isAuthenticated, token]);
 
   // Subir archivo al backend
   const handleFileUpload = async (event) => {
-  const file = event.target.files[0];
-  if (file && file.type === 'text/csv') {
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('filename', file.name);
-    formData.append('originalname', file.name);
-    formData.append('uploadedBy', 'usuario@ejemplo.com'); // <-- pon aquí el usuario real si lo tienes
-    try {
-      setLoadingFiles(true);
-      await axios.post(API_URL, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
-      const response = await axios.get(API_URL);
-      console.log('Archivos después de subir:', response.data);
-      setCsvFiles(response.data);
-    } catch (error) {
-      console.error('Error subiendo archivo', error);
-    } finally {
-      setLoadingFiles(false);
+    const file = event.target.files[0];
+    if (file && file.type === 'text/csv') {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('filename', file.name);
+      formData.append('originalname', file.name);
+      // Usar email o username real del usuario autenticado
+      const uploadedBy = user?.email || user?.username || 'usuario@ejemplo.com';
+      formData.append('uploadedBy', uploadedBy);
+      try {
+        setLoadingFiles(true);
+        await axios.post(API_URL, formData, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const response = await axios.get(API_URL, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        console.info('[FileManager] Archivos después de subir:', response.data);
+        // El backend responde con { message, data: { data: [...], total } }
+        setCsvFiles(response.data.data);
+      } catch (error) {
+        console.error('Error subiendo archivo', error);
+      } finally {
+        setLoadingFiles(false);
+      }
     }
-  }
-};
+  };
 
   // Eliminar archivo del backend
   const handleDeleteFile = async (filename) => {
@@ -106,7 +127,9 @@ const FileManager = () => {
       // Buscar el id del archivo por filename
       const file = csvFiles.find(f => f.filename === filename);
       if (!file || !file._id) throw new Error('No se encontró el id del archivo');
-      await axios.post(`${API_URL}/delete-many`, { ids: [file._id] });
+      await axios.post(`${API_URL}/delete-many`, { ids: [file._id] }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       setCsvFiles(csvFiles.filter(f => f._id !== file._id));
       setSelectedCsvIds(selectedCsvIds.filter(id => id !== file._id));
     } catch (error) {
@@ -114,12 +137,17 @@ const FileManager = () => {
     } finally {
       setLoadingFiles(false);
     }
+  };
   // Eliminar múltiples archivos seleccionados
   const handleDeleteSelected = async () => {
     if (selectedCsvIds.length === 0) return;
     try {
       setLoadingFiles(true);
-      await axios.post(`${API_URL}/delete-many`, { ids: selectedCsvIds });
+      // La API espera el body: { ids: ["id1", ...] }
+      await axios.delete(API_URL, {
+        data: { ids: selectedCsvIds },
+        headers: { Authorization: `Bearer ${token}` }
+      });
       setCsvFiles(csvFiles.filter(f => !selectedCsvIds.includes(f._id)));
       setSelectedCsvIds([]);
     } catch (error) {
@@ -128,14 +156,15 @@ const FileManager = () => {
       setLoadingFiles(false);
     }
   };
-  };
 
   // Abrir chat con archivo seleccionado
   const handleOpenChat = async (file) => {
     try {
       setLoadingChat(true);
-      const response = await axios.get(`${API_URL}/${file.filename}`);
-      console.log('Datos para chat:', response.data);
+      const response = await axios.get(`${API_URL}/${file.filename}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      console.info('[FileManager] Datos para chat:', response.data);
       setSelectedFile({
         ...file,
         data: response.data || [],
@@ -151,7 +180,9 @@ const FileManager = () => {
   // Vista previa del archivo
   const handlePreviewFile = async (file) => {
     try {
-      const response = await axios.get(`${API_URL}/${file.filename}`);
+      const response = await axios.get(`${API_URL}/${file.filename}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       setPreviewData(response.data?.slice(0, 10) || []);
       setShowPreview(true);
     } catch (error) {

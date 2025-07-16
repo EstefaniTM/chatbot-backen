@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const BACKEND_URL = 'http://localhost:3008';
+const BACKEND_URL = 'https://nestjs-chatbot-backeb-api.desarrollo-software.xyz';
 const API_BASE = `${BACKEND_URL}/csv-uploads`;
 
 export const csvService = {
