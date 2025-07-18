@@ -9,14 +9,17 @@ async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule); // 👈 Correcto tipo de aplicación
 
   // Habilitar CORS antes de las otras configuraciones
+  const allowedOrigins = [
+    'http://localhost:3000',
+    'http://localhost:3009',
+    'http://localhost:3008',
+    'http://localhost:3010', // 👈 Asegúrate de que este puerto sea correcto
+    'https://chatbot-frontend.desarrollo-software.xyz'
+  ];
+  console.log('[CORS] Orígenes permitidos:', allowedOrigins);
   app.enableCors({
-origin: [
-  'http://localhost:3000',
-  'http://localhost:3009',
-  'http://localhost:3008',
-  'http://localhost:3010', // 👈 Asegúrate de que este puerto sea correcto
-  'https://chatbot-frontend.desarrollo-software.xyz'
-],    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    origin: allowedOrigins,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true
   });

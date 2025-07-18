@@ -6,7 +6,7 @@ export class User {
   id: number;
 
   @Column({ unique: true })
-  username: string;
+  // username eliminado, usar solo email
 
   @Column({ nullable: true })
   email?: string;

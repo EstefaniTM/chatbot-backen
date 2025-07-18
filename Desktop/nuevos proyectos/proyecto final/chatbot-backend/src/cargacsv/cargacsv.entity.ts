@@ -10,7 +10,7 @@ export class Cargacsv extends Document {
   originalname: string;
 
   @Prop({ required: true })
-  uploadedBy: string; // userId o username
+  uploadedBy: string; // userId o email
 
   @Prop({ default: Date.now })
   uploadedAt: Date;

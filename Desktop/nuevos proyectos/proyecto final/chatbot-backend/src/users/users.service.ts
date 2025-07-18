@@ -62,14 +62,7 @@ export class UsersService {
     }
   }
 
-  async findByUsername(username: string): Promise<User | null> {
-    try {
-      return await this.userRepository.findOne({ where: { username } });
-    } catch (err) {
-      console.error('Error finding user by username:', err);
-      return null;
-    }
-  }
+  // Método findByUsername eliminado, usar findByEmail
 
   async findByEmail(email: string): Promise<User | null> {
     try {

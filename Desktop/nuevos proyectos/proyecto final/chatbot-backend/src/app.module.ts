@@ -26,7 +26,7 @@ import { ChatbotModule } from './chatbot/chatbot.module';
       type: 'postgres',
       host: process.env.DB_HOST,
       port: parseInt(process.env.DB_PORT || '5432'),
-      username: process.env.DB_USER,
+      // username eliminado, usar solo email si aplica
       password: process.env.DB_PASS,
       database: process.env.DB_NAME,
       entities: [User],
