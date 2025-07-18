@@ -1,59 +1,8 @@
 {
-  "name": "chatbot-fronend",
-  "version": "0.1.0",
-  "private": true,
-  "dependencies": {
-    "@emotion/react": "^11.14.0",
-    "@emotion/styled": "^11.14.1",
-    "@mui/icons-material": "^7.2.0",
-    "@mui/material": "^7.2.0",
-    "@mui/x-data-grid": "^8.7.0",
-    "@nestjs/platform-express": "^11.1.3",
-    "@testing-library/dom": "^10.4.0",
-    "@testing-library/jest-dom": "^6.6.3",
-    "@testing-library/react": "^16.3.0",
-    "@testing-library/user-event": "^13.5.0",
-    "axios": "^1.10.0",
-    "csv-parse": "^6.0.0",
-    "multer": "^2.0.1",
-    "papaparse": "^5.5.3",
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0",
-    "react-icons": "^5.5.0",
-    "react-scripts": "5.0.1",
-    "web-vitals": "^2.1.4"
-  },
-  "scripts": {
-    "start": "PORT=3009 react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject",
-    "dev": "react-scripts start"
-  },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
-  },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
-  },
-  "devDependencies": {
-    "@types/csv-parse": "^1.1.12"
   "name": "chatbot-backend",
   "version": "0.0.1",
   "description": "",
-  "author": "Estefani Tipantuña",
+  "author": "",
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
@@ -78,23 +27,24 @@
     "@nestjs/mongoose": "^11.0.3",
     "@nestjs/passport": "^11.0.5",
     "@nestjs/platform-express": "^11.1.1",
+    "@nestjs/swagger": "^11.1.5",
     "@nestjs/typeorm": "^11.0.0",
-    "axios": "^1.10.0",
+    "axios": "^1.9.0",
     "bcrypt": "^5.1.1",
     "class-transformer": "^0.5.1",
-    "class-validator": "^0.14.2",
-    "csv-parse": "^6.0.0",
-    "mongoose": "^8.16.1",
+    "class-validator": "^0.14.1",
+    "csv-parse": "^6.1.0",
+    "mongoose": "^8.16.0",
     "multer": "^2.0.0",
     "nestjs-typeorm-paginate": "^4.1.0",
     "nodemailer": "^7.0.3",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
-    "pg": "^8.16.3",
-    "react-router-dom": "^7.7.0",
+    "pg": "^8.15.6",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
-    "typeorm": "^0.3.25"
+    "swagger-ui-express": "^5.0.1",
+    "typeorm": "^0.3.22"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",
@@ -104,12 +54,9 @@
     "@nestjs/testing": "^11.0.1",
     "@swc/cli": "^0.6.0",
     "@swc/core": "^1.10.7",
-    "@types/axios": "^0.9.36",
     "@types/bcrypt": "^5.0.2",
-    "@types/csv-parse": "^1.1.12",
     "@types/express": "^5.0.2",
     "@types/jest": "^29.5.14",
-    "@types/mongoose": "^5.11.96",
     "@types/multer": "^1.4.12",
     "@types/node": "^22.10.7",
     "@types/supertest": "^6.0.2",
@@ -125,7 +72,7 @@
     "ts-loader": "^9.5.2",
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
-    "typescript": "^5.7.3",
+    "typescript": "^5.8.3",
     "typescript-eslint": "^8.20.0"
   },
   "jest": {
