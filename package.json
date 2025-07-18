@@ -1,5 +1,4 @@
 {
-<<<<<<< HEAD
   "name": "chatbot-fronend",
   "version": "0.1.0",
   "private": true,
@@ -51,7 +50,6 @@
   },
   "devDependencies": {
     "@types/csv-parse": "^1.1.12"
-=======
   "name": "chatbot-backend",
   "version": "0.0.1",
   "description": "",
@@ -146,6 +144,5 @@
     ],
     "coverageDirectory": "../coverage",
     "testEnvironment": "node"
->>>>>>> 87ad4dd6987f1d2ccdb8984638d53e88e641c3a0
   }
 }
