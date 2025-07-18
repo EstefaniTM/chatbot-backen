@@ -31,12 +31,7 @@ import { Roles } from '../decorators/roles.decorator';
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  // PÚBLICO - Registro de usuarios
-  @Post()
-  async create(@Body() dto: CreateUserDto) {
-    const user = await this.usersService.create(dto);
-    return new SuccessResponseDto('User created successfully', user);
-  }
+  // Registro de usuarios solo por /auth/register
 
   // PRIVADO - Solo admin puede ver todos los usuarios
   @UseGuards(JwtAuthGuard, RolesGuard)

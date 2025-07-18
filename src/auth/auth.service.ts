@@ -16,12 +16,12 @@ export class AuthService {
   async login(loginDto: LoginDto): Promise<string | null> {
     try {
       const user: User | null = await this.usersService.findByEmail(
-        loginDto.username, // username en LoginDto contiene el email
+        loginDto.email,
       );
       if (!user) return null;
       const isValid = await bcrypt.compare(loginDto.password, user.password);
       if (!isValid) return null;
-      const payload = { id: user.id, username: user.username, role: user.role };
+      const payload = { id: user.id, email: user.email, role: user.role };
       return this.jwtService.sign(payload);
     } catch (err) {
       console.error('Unexpected login error:', err);
@@ -32,7 +32,7 @@ export class AuthService {
   async register(createUserDto: CreateUserDto): Promise<string | null> {
     const user = await this.usersService.create(createUserDto);
     if (!user) return null;
-    const payload = { id: user.id, email: user.username, role: user.role };
+    const payload = { id: user.id, email: user.email, role: user.role };
     return this.jwtService.sign(payload);
   }
 }

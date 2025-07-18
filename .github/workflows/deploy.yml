@@ -1,5 +1,4 @@
-name: 🚀 Deploy NestJS Blog Backend API to VPS
-
+name: 🚀 Deploy NestJS Chatbot Backend API to VPS
 on:
   push:
     branches: [main]
@@ -29,9 +28,23 @@ jobs:
         key: ${{ secrets.VPS_KEY }}
         script: |
           cd /root/tipantuna_estefani/chatbot-backen
-          echo "$${{ secrets.ENV_FILE }}" > .env
-          npm install --production
+
+          echo "🔪 Matando proceso en el puerto 3008..."
+          sudo lsof -t -i:3008 | xargs sudo kill -9 || true
+
+          echo "📄 Configurando variables de entorno..."
+          echo -e "${{ secrets.ENV_FILE }}" > .env
+
+          echo "📦 Instalando dependencias..."
+          npm install
+
+          echo "🏗️ Compilando proyecto..."
           npm run build
+
+          echo "🔄 Reiniciando servicio..."
           pm2 delete nestjs-chatbot-backend || true
-          pm2 delete nestjs-Chatbot-backeb || true
+          pm2 delete nestjs-Chatbot-backend || true
           pm2 start dist/main.js --name nestjs-chatbot-backend
+          pm2 save
+
+          echo "✅ Deploy completado!"

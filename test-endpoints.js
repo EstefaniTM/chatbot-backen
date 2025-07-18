@@ -1,6 +1,6 @@
 const axios = require('axios');
 
-const BASE_URL = 'http://localhost:3008';
+const BASE_URL = 'https://nestjs-chatbot-backeb-api.desarrollo-software.xyz';
 
 // Variables para almacenar tokens
 let userToken = '';

@@ -15,16 +15,23 @@ export class UsersService {
 
   async create(dto: CreateUserDto): Promise<User | null> {
     try {
+      // Verificar si es el primer usuario
+      const userCount = await this.userRepository.count();
       // Hashear la contraseña antes de guardar
       const hashedPassword = await bcrypt.hash(dto.password, 10);
+      let role = 'user';
+      if (userCount === 0) {
+        role = 'admin';
+      }
       const user = this.userRepository.create({
         ...dto,
         password: hashedPassword,
+        role,
       });
       return await this.userRepository.save(user);
     } catch (err) {
       console.error('Error creating user:', err);
-      return null;
+      throw new Error(err?.detail || err?.message || 'Error creating user');
     }
   }
 
@@ -62,14 +69,6 @@ export class UsersService {
     }
   }
 
-  async findByUsername(username: string): Promise<User | null> {
-    try {
-      return await this.userRepository.findOne({ where: { username } });
-    } catch (err) {
-      console.error('Error finding user by username:', err);
-      return null;
-    }
-  }
 
   async findByEmail(email: string): Promise<User | null> {
     try {

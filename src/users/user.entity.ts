@@ -5,11 +5,11 @@ export class User {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ unique: true })
-  username: string;
 
-  @Column({ nullable: true })
-  email?: string;
+  @Column({ unique: true })
+  email: string;
+
+  // Eliminado: email opcional duplicado
 
   @Column()
   password: string;
