@@ -44,4 +44,4 @@ jobs:
           echo "🔄 Reiniciando servicio..."
           pm2 delete nestjs-chatbot-backend || true
           pm2 delete nestjs-Chatbot-backend || true
-          pm2 start dist/src/main.js --name nestjs-chatbot-backend
+          pm2 start dist/main.js --name nestjs-chatbot-backend
