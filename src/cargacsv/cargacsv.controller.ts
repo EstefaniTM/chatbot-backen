@@ -64,13 +64,24 @@ export class CargacsvController {
     }
 
     // Leer y guardar el contenido del CSV en la base de datos
-    const filePath = path.join(process.cwd(), 'uploads', file.filename);
+    const filePath = require('path').join(process.cwd(), 'uploads', file.filename);
     console.log('[CSV] Ruta del archivo:', filePath);
-    // Aquí podrías agregar lógica para procesar el archivo si es necesario
+    const fs = require('fs');
+    let csvContent = '';
+    try {
+      csvContent = fs.readFileSync(filePath, 'utf8');
+    } catch (err) {
+      console.error('[CSV] Error leyendo el archivo:', err);
+    }
+    if (csvContent) {
+      await this.cargacsvService.saveCsvRowsInDocument(csvContent, csv._id);
+    }
 
+    // Obtener el documento actualizado
+    const updatedCsv = await this.cargacsvService.findById(csv._id);
     return new SuccessResponseDto(
-      'Archivo CSV subido exitosamente',
-      csv,
+      'Archivo CSV subido y procesado exitosamente',
+      updatedCsv,
     );
   }
 
