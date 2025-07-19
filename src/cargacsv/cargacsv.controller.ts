@@ -79,7 +79,10 @@ export class CargacsvController {
     }
 
     // Obtener el documento actualizado
-    const updatedCsv = await this.cargacsvService.findById(csv._id);
+    if (!csv._id) {
+      throw new NotFoundException('No se pudo obtener el ID del CSV procesado');
+    }
+    const updatedCsv = await this.cargacsvService.findById(csv._id.toString());
     if (!updatedCsv) {
       throw new NotFoundException('No se pudo encontrar el CSV procesado');
     }
