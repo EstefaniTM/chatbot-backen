@@ -1,4 +1,5 @@
 
+
 import { parse } from 'csv-parse/sync';
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
@@ -10,12 +11,21 @@ import * as path from 'path';
 
 @Injectable()
 export class CargacsvService {
-
   constructor(
     @InjectModel(Cargacsv.name)
     private readonly cargacsvModel: Model<Cargacsv>,
   ) {}
 
+  async findById(_id: string | Types.ObjectId): Promise<Cargacsv | null> {
+    try {
+      // Si el id es string, conviértelo a ObjectId
+      const objectId = typeof _id === 'string' ? new Types.ObjectId(_id) : _id;
+      return await this.cargacsvModel.findById(objectId).exec();
+    } catch (err) {
+      console.error('Error buscando CSV por id:', err);
+      return null;
+    }
+  }
 
   // Guarda las filas del CSV como un array en el campo 'data' del documento principal
   async saveCsvRowsInDocument(csvContent: string, csvId: Types.ObjectId) {
@@ -37,6 +47,8 @@ export class CargacsvService {
       return 0;
     }
   }
+
+  // (Constructor already defined above, remove this duplicate)
 
   async create(createCargacsvDto: CreateCargacsvDto): Promise<Cargacsv | null> {
     try {

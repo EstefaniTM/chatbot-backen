@@ -74,11 +74,15 @@ export class CargacsvController {
       console.error('[CSV] Error leyendo el archivo:', err);
     }
     if (csvContent) {
-      await this.cargacsvService.saveCsvRowsInDocument(csvContent, csv._id);
+      const { ObjectId } = require('mongodb');
+      await this.cargacsvService.saveCsvRowsInDocument(csvContent, new ObjectId(csv._id));
     }
 
     // Obtener el documento actualizado
     const updatedCsv = await this.cargacsvService.findById(csv._id);
+    if (!updatedCsv) {
+      throw new NotFoundException('No se pudo encontrar el CSV procesado');
+    }
     return new SuccessResponseDto(
       'Archivo CSV subido y procesado exitosamente',
       updatedCsv,
