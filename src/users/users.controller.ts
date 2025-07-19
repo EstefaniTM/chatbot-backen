@@ -1,3 +1,4 @@
+import { SetAdminDto } from './dto/set-admin.dto';
 import {
   Controller,
   Get,
@@ -13,7 +14,7 @@ import {
   UploadedFile,
   InternalServerErrorException,
   UseGuards,
-  Request,
+  Req,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -29,6 +30,18 @@ import { Roles } from '../decorators/roles.decorator';
 
 @Controller('users')
 export class UsersController {
+  // Permite a cualquier usuario convertirse en admin si ingresa la contraseña especial
+  @UseGuards(JwtAuthGuard)
+  @Post('set-admin')
+  async setAdmin(@Req() req: any, @Body() dto: SetAdminDto) {
+    const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123';
+    if (dto.adminPassword !== ADMIN_PASSWORD) {
+      throw new BadRequestException('Contraseña de admin incorrecta');
+    }
+    const userId = req.user?.id || req.user?._id || req.user?.sub;
+    const user = await this.usersService.update(userId, { role: 'admin' });
+    return new SuccessResponseDto('Ahora eres admin', user);
+  }
   constructor(private readonly usersService: UsersService) {}
 
   // Registro de usuarios solo por /auth/register

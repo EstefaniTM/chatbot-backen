@@ -11,4 +11,8 @@ export class CreateUserDto {
   @IsOptional()
   @IsIn(['user', 'admin'])
   role?: string;
+
+  @IsOptional()
+  @MinLength(6)
+  adminPassword?: string;
 }
