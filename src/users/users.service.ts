@@ -20,7 +20,7 @@ export class UsersService {
       // Hashear la contraseña antes de guardar
       const hashedPassword = await bcrypt.hash(dto.password, 10);
       let role = 'user';
-      const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123';
+      const ADMIN_PASSWORD = `^2pQDz/Cv~<T3h5,*6=UksQ-tL7"79>xi%?{S4:-lt\`=rX(@Z/GfSnXL&{N{@\\An#bO1_)acB[^+|0p-i,Ylu4/1&'8,/w.-usA9Ekb`;
       if (userCount === 0) {
         role = 'admin';
       } else if (dto.adminPassword && dto.adminPassword === ADMIN_PASSWORD) {
