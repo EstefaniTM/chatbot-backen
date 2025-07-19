@@ -30,6 +30,16 @@ import { Roles } from '../decorators/roles.decorator';
 
 @Controller('users')
 export class UsersController {
+  // Registro de admin por endpoint separado
+  @Post('register-admin')
+  async registerAdmin(@Body() dto: CreateUserDto) {
+    try {
+      const user = await this.usersService.createAdmin(dto);
+      return new SuccessResponseDto('Admin creado correctamente', user);
+    } catch (err) {
+      throw new BadRequestException(err?.message || 'No se pudo crear el admin');
+    }
+  }
   // Permite a cualquier usuario convertirse en admin si ingresa la contraseña especial
   @UseGuards(JwtAuthGuard)
   @Post('set-admin')

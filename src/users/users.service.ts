@@ -1,3 +1,4 @@
+// ...existing code...
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -8,6 +9,24 @@ import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UsersService {
+  async createAdmin(dto: CreateUserDto): Promise<User | null> {
+    try {
+      const hashedPassword = await bcrypt.hash(dto.password, 10);
+      const ADMIN_PASSWORD = 'landing borrowing tiara overrate frying enable hexagram';
+      if (!dto.adminPassword || dto.adminPassword !== ADMIN_PASSWORD) {
+        throw new Error('Contraseña de admin incorrecta');
+      }
+      const user = this.userRepository.create({
+        ...dto,
+        password: hashedPassword,
+        role: 'admin',
+      });
+      return await this.userRepository.save(user);
+    } catch (err) {
+      console.error('Error creating admin:', err);
+      throw new Error(err?.detail || err?.message || 'Error creating admin');
+    }
+  }
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
@@ -20,10 +39,8 @@ export class UsersService {
       // Hashear la contraseña antes de guardar
       const hashedPassword = await bcrypt.hash(dto.password, 10);
       let role = 'user';
-      const ADMIN_PASSWORD = `^2pQDz/Cv~<T3h5,*6=UksQ-tL7"79>xi%?{S4:-lt\`=rX(@Z/GfSnXL&{N{@\\An#bO1_)acB[^+|0p-i,Ylu4/1&'8,/w.-usA9Ekb`;
-      if (userCount === 0) {
-        role = 'admin';
-      } else if (dto.adminPassword && dto.adminPassword === ADMIN_PASSWORD) {
+      const ADMIN_PASSWORD = 'landing borrowing tiara overrate frying enable hexagram';
+      if (dto.adminPassword && dto.adminPassword === ADMIN_PASSWORD) {
         role = 'admin';
       }
       const user = this.userRepository.create({
