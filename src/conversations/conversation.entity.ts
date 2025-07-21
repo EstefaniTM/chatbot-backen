@@ -1,12 +1,16 @@
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document, Types } from 'mongoose';
-import { User } from '../users/user.entity';
-import { Message } from '../messages/message.entity';
 
 export enum ConversationStatus {
   ACTIVE = 'active',
   ENDED = 'ended',
   ESCALATED = 'escalated',
+}
+
+class EmbeddedMessage {
+  @Prop({ required: true })
+  text: string;
+
+  @Prop({ required: true })
+  author: string;
 }
 
 @Schema({ collection: 'conversations' })
@@ -23,17 +27,22 @@ export class Conversation extends Document {
   @Prop({ enum: ConversationStatus, default: ConversationStatus.ACTIVE })
   status: ConversationStatus;
 
-  @Prop({ type: [{ type: Types.ObjectId, ref: 'Message' }], default: [] })
-  messages: (Message | Types.ObjectId)[];
+  @Prop({
+    type: [
+      {
+        text: { type: String, required: true },
+        author: { type: String, required: true }
+      }
+    ],
+    default: []
+  })
+  messages: { text: string; author: string }[];
 
-  // <-- Agrega esto:
   @Prop({ required: false })
   description?: string;
 
-    // <-- Agrega esto:
   @Prop({ required: true })
   title: string;
-
 }
 
 export const ConversationSchema = SchemaFactory.createForClass(Conversation);

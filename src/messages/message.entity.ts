@@ -1,6 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
-import { Conversation } from '../conversations/conversation.entity';
 
 export enum MessageSender {
   USER = 'user',
@@ -11,10 +10,10 @@ export enum MessageSender {
 @Schema({ collection: 'messages' })
 export class Message extends Document {
   @Prop({ type: Types.ObjectId, ref: 'Conversation', required: true })
-  conversation: Conversation | Types.ObjectId;
+  conversation: Types.ObjectId;
 
   @Prop({ enum: MessageSender, required: true })
-  sender: MessageSender;
+  sender: string;
 
   @Prop({ required: true })
   content: string;
