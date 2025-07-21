@@ -14,14 +14,36 @@ export class ConversationsService {
 
     async create(createConversationDto: CreateConversationDto, user: User): Promise<Conversation | null> {
     try {
+      // Si viene userId en el body, úsalo, si no, usa el del token
+      const userId = createConversationDto.userId || user.id?.toString();
       const conversationData: Partial<Conversation> = {
-        ...createConversationDto, // <-- Esto toma title, description, metadata
+        title: createConversationDto.title,
+        description: createConversationDto.description,
         status: ConversationStatus.ACTIVE,
-        user: user.id.toString(),
+        user: userId,
         started_at: new Date(),
       };
       const conversation = new this.conversationModel(conversationData);
-      return await conversation.save();
+      const savedConversation = await conversation.save();
+
+      // Si vienen mensajes, guárdalos y asócialos a la conversación
+      if (createConversationDto.messages && createConversationDto.messages.length > 0) {
+        const MessageModel = require('mongoose').model('Message');
+        const messageDocs = await Promise.all(
+          createConversationDto.messages.map(async (msg) => {
+            const message = new MessageModel({
+              conversation: savedConversation._id,
+              sender: msg.author,
+              content: msg.text,
+              timestamp: new Date(),
+            });
+            return await message.save();
+          })
+        );
+        savedConversation.messages = messageDocs.map(m => m._id);
+        await savedConversation.save();
+      }
+      return savedConversation;
     } catch (err) {
       console.error('Error creating conversation:', err);
       return null;
