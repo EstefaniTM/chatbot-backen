@@ -8,9 +8,8 @@ import { User } from 'src/users/user.entity';
 
 @Injectable()
 export class ConversationsService {
-  async update(id: string, updateDto: Partial<CreateConversationDto>): Promise<Conversation | null> {
+  async update(id: string, updateDto: Partial<CreateConversationDto>): Promise<any> {
     try {
-      // Si se envía messages, reemplaza el array completo
       const updateData: any = { ...updateDto };
       if (updateDto.messages) {
         updateData.messages = updateDto.messages.map(msg => ({
@@ -22,8 +21,24 @@ export class ConversationsService {
         id,
         { $set: updateData },
         { new: true }
-      ).exec();
-      return updated;
+      ).populate('user').exec();
+      if (!updated) return null;
+      const obj = updated.toObject();
+      obj.id = obj._id;
+      delete obj._id;
+      if (obj.user && typeof obj.user === 'object' && '_id' in obj.user) {
+        obj.user = (obj.user as any)._id.toString();
+      }
+      if (obj.messages && Array.isArray(obj.messages)) {
+        obj.messages = obj.messages.map((msg: any) => {
+          if (msg._id) {
+            msg.id = msg._id;
+            delete msg._id;
+          }
+          return msg;
+        });
+      }
+      return obj;
     } catch (err) {
       console.error('Error updating conversation:', err);
       return null;
@@ -34,11 +49,8 @@ export class ConversationsService {
     private readonly conversationModel: Model<Conversation>,
   ) {}
 
-    async create(createConversationDto: CreateConversationDto, user: User): Promise<Conversation | null> {
+  async create(createConversationDto: CreateConversationDto, user: User): Promise<any> {
     try {
-      console.log('DTO recibido:', createConversationDto);
-      console.log('Usuario recibido:', user);
-      // Si viene user en el body, úsalo, si no, usa el del token
       const userIdValue = createConversationDto.user || user.id?.toString();
       const conversationData: Partial<Conversation> = {
         title: createConversationDto.title,
@@ -50,7 +62,6 @@ export class ConversationsService {
       const conversation = new this.conversationModel(conversationData);
       const savedConversation = await conversation.save();
 
-      // Si vienen mensajes, guárdalos directamente en el array de la conversación
       if (createConversationDto.messages && createConversationDto.messages.length > 0) {
         savedConversation.messages = createConversationDto.messages.map(msg => ({
           text: msg.text,
@@ -58,7 +69,23 @@ export class ConversationsService {
         }));
         await savedConversation.save();
       }
-      return savedConversation;
+
+      const obj = savedConversation.toObject();
+      obj.id = obj._id;
+      delete obj._id;
+      if (obj.user && typeof obj.user === 'object' && '_id' in obj.user) {
+        obj.user = (obj.user as any)._id.toString();
+      }
+      if (obj.messages && Array.isArray(obj.messages)) {
+        obj.messages = obj.messages.map((msg: any) => {
+          if (msg._id) {
+            msg.id = msg._id;
+            delete msg._id;
+          }
+          return msg;
+        });
+      }
+      return obj;
     } catch (err) {
       console.error('Error creating conversation:', err);
       return null;
@@ -94,12 +121,29 @@ export class ConversationsService {
     }
   }
 
-  async findOne(id: string): Promise<Conversation | null> {
+  async findOne(id: string): Promise<any> {
     try {
-      return await this.conversationModel
+      const found = await this.conversationModel
         .findById(id)
-        .populate(['messages', 'user'])
+        .populate('user')
         .exec();
+      if (!found) return null;
+      const obj = found.toObject();
+      obj.id = obj._id;
+      delete obj._id;
+      if (obj.user && typeof obj.user === 'object' && '_id' in obj.user) {
+        obj.user = (obj.user as any)._id.toString();
+      }
+      if (obj.messages && Array.isArray(obj.messages)) {
+        obj.messages = obj.messages.map((msg: any) => {
+          if (msg._id) {
+            msg.id = msg._id;
+            delete msg._id;
+          }
+          return msg;
+        });
+      }
+      return obj;
     } catch (err) {
       console.error('Error retrieving conversation:', err);
       return null;
