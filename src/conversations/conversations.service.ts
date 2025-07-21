@@ -10,9 +10,17 @@ import { User } from 'src/users/user.entity';
 export class ConversationsService {
   async update(id: string, updateDto: Partial<CreateConversationDto>): Promise<Conversation | null> {
     try {
+      // Si se envía messages, reemplaza el array completo
+      const updateData: any = { ...updateDto };
+      if (updateDto.messages) {
+        updateData.messages = updateDto.messages.map(msg => ({
+          text: msg.text,
+          author: msg.author
+        }));
+      }
       const updated = await this.conversationModel.findByIdAndUpdate(
         id,
-        { $set: updateDto },
+        { $set: updateData },
         { new: true }
       ).exec();
       return updated;
