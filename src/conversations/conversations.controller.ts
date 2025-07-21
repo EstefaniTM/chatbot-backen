@@ -1,3 +1,4 @@
+// ...existing imports y clase...
 import {
   Controller,
   Post as HttpPost,
@@ -8,7 +9,8 @@ import {
   NotFoundException,
   InternalServerErrorException,
   Delete,
-  Post
+  Post,
+  Patch
 } from '@nestjs/common';
 import { ConversationsService } from './conversations.service';
 import { CreateConversationDto } from './dto/create-conversation.dto';
@@ -20,6 +22,16 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @Controller('conversations')
 export class ConversationsController {
+  @UseGuards(JwtAuthGuard)
+  @Patch(':id')
+  async update(
+    @Param('id') id: string,
+    @Body() updateConversationDto: Partial<CreateConversationDto>,
+  ): Promise<SuccessResponseDto<Conversation>> {
+    const updated = await this.conversationsService.update(id, updateConversationDto);
+    if (!updated) throw new NotFoundException('Conversation not found');
+    return new SuccessResponseDto('Conversation updated successfully', updated);
+  }
   constructor(private readonly conversationsService: ConversationsService) {}
 
   @UseGuards(JwtAuthGuard)

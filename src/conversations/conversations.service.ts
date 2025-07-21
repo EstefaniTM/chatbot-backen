@@ -1,3 +1,4 @@
+// ...eliminado, se agregará dentro de la clase...
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
@@ -7,6 +8,19 @@ import { User } from 'src/users/user.entity';
 
 @Injectable()
 export class ConversationsService {
+  async update(id: string, updateDto: Partial<CreateConversationDto>): Promise<Conversation | null> {
+    try {
+      const updated = await this.conversationModel.findByIdAndUpdate(
+        id,
+        { $set: updateDto },
+        { new: true }
+      ).exec();
+      return updated;
+    } catch (err) {
+      console.error('Error updating conversation:', err);
+      return null;
+    }
+  }
   constructor(
     @InjectModel(Conversation.name)
     private readonly conversationModel: Model<Conversation>,
