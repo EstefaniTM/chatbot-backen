@@ -17,7 +17,7 @@ class EmbeddedMessage {
 
 @Schema({ collection: 'conversations' })
 export class Conversation extends Document {
-  @Prop({ type: String, required: false })
+  @Prop({ type: String, required: true })
   user: string;
 
   @Prop({ default: Date.now })

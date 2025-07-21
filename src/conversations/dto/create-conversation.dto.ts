@@ -13,9 +13,8 @@ export class CreateConversationDto {
   @IsString()
   title: string;
 
-  @IsOptional()
   @IsString()
-  userId?: string;
+  user: string;
 
   @IsOptional()
   @IsArray()

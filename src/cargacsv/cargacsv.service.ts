@@ -1,5 +1,4 @@
-
-
+// ...existing code...
 import { parse } from 'csv-parse/sync';
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
@@ -15,6 +14,7 @@ export class CargacsvService {
     @InjectModel(Cargacsv.name)
     private readonly cargacsvModel: Model<Cargacsv>,
   ) {}
+
 
   async findById(_id: string | Types.ObjectId): Promise<Cargacsv | null> {
     try {

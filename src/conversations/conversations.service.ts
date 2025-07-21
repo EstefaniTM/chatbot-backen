@@ -16,13 +16,13 @@ export class ConversationsService {
     try {
       console.log('DTO recibido:', createConversationDto);
       console.log('Usuario recibido:', user);
-      // Si viene userId en el body, úsalo, si no, usa el del token
-      const userId = createConversationDto.userId || user.id?.toString();
+      // Si viene user en el body, úsalo, si no, usa el del token
+      const userIdValue = createConversationDto.user || user.id?.toString();
       const conversationData: Partial<Conversation> = {
         title: createConversationDto.title,
         description: createConversationDto.description,
         status: ConversationStatus.ACTIVE,
-        user: userId,
+        user: userIdValue,
         started_at: new Date(),
       };
       const conversation = new this.conversationModel(conversationData);
