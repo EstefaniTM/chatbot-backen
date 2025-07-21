@@ -101,6 +101,10 @@ export class UsersService {
 
   async update(id: number, dto: UpdateUserDto): Promise<User | null> {
     try {
+      // Si el DTO incluye password, hashearla antes de actualizar
+      if (dto.password) {
+        dto.password = await bcrypt.hash(dto.password, 10);
+      }
       await this.userRepository.update(id, dto);
       return await this.userRepository.findOne({ where: { id } });
     } catch (err) {

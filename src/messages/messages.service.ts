@@ -22,15 +22,7 @@ export class MessagesService {
       content: text,
       timestamp: new Date(),
     });
-    const savedMessage = await message.save();
-    // Actualizar el array messages en la conversación
-    const ConversationModel = this.messageModel.db.model('Conversation');
-    await ConversationModel.findByIdAndUpdate(
-      conversationId,
-      { $push: { messages: { text, author } } },
-      { new: true }
-    ).exec();
-    return savedMessage;
+    return await message.save();
   }
 
   async updateMessage(messageId: string, text: string): Promise<Message | null> {
