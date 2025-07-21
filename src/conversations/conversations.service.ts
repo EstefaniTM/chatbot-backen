@@ -28,21 +28,12 @@ export class ConversationsService {
       const conversation = new this.conversationModel(conversationData);
       const savedConversation = await conversation.save();
 
-      // Si vienen mensajes, guárdalos y asócialos a la conversación
+      // Si vienen mensajes, guárdalos directamente en el array de la conversación
       if (createConversationDto.messages && createConversationDto.messages.length > 0) {
-        const MessageModel = require('mongoose').model('Message');
-        const messageDocs = await Promise.all(
-          createConversationDto.messages.map(async (msg) => {
-            const message = new MessageModel({
-              conversation: savedConversation._id,
-              sender: msg.author,
-              content: msg.text,
-              timestamp: new Date(),
-            });
-            return await message.save();
-          })
-        );
-        savedConversation.messages = messageDocs.map(m => m._id);
+        savedConversation.messages = createConversationDto.messages.map(msg => ({
+          text: msg.text,
+          author: msg.author
+        }));
         await savedConversation.save();
       }
       return savedConversation;
