@@ -1,3 +1,4 @@
+
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
@@ -9,6 +10,10 @@ export class MessagesService {
     @InjectModel(Message.name)
     private readonly messageModel: Model<Message>,
   ) {}
+
+  async getMessagesByConversation(conversationId: string): Promise<Message[]> {
+    return await this.messageModel.find({ conversation: conversationId }).sort({ timestamp: 1 }).exec();
+  }
 
   async createMessage(conversationId: string, text: string, author: string): Promise<Message> {
     const message = new this.messageModel({
