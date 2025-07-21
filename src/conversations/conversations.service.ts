@@ -14,6 +14,8 @@ export class ConversationsService {
 
     async create(createConversationDto: CreateConversationDto, user: User): Promise<Conversation | null> {
     try {
+      console.log('DTO recibido:', createConversationDto);
+      console.log('Usuario recibido:', user);
       // Si viene userId en el body, úsalo, si no, usa el del token
       const userId = createConversationDto.userId || user.id?.toString();
       const conversationData: Partial<Conversation> = {
