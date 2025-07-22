@@ -10,16 +10,15 @@ async function bootstrap() {
 
   // Habilitar CORS antes de las otras configuraciones
   app.enableCors({
-origin: [
-  'http://localhost:3000',
-  'http://localhost:3009',
-  'http://localhost:3008',
-  'http://localhost:3010',
-  'https://estefanitipantunamatiag.netlify.app/'
-
-
-  'https://chatbot-frontend.desarrollo-software.xyz'
-],    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+ origin: [
+      'http://localhost:3000',
+      'http://localhost:3009',
+      'http://localhost:3008',
+      'http://localhost:3010',
+      'https://estefanitipantunamatiag.netlify.app',
+      'https://chatbot-frontend.desarrollo-software.xyz'
+    ],
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true
   });
