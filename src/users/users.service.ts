@@ -34,6 +34,11 @@ export class UsersService {
 
   async create(dto: CreateUserDto): Promise<User | null> {
     try {
+      // Validar email único
+      const existingUser = await this.userRepository.findOne({ where: { email: dto.email } });
+      if (existingUser) {
+        throw new Error('El email ya está registrado');
+      }
       // Verificar si es el primer usuario
       const userCount = await this.userRepository.count();
       // Hashear la contraseña antes de guardar
