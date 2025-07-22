@@ -99,8 +99,12 @@ export class UsersService {
     }
   }
 
-  async update(id: number, dto: UpdateUserDto): Promise<User | null> {
+  async update(id: number, dto: UpdateUserDto, currentUser?: User): Promise<User | null> {
     try {
+      // Validar que solo los administradores puedan cambiar el rol
+      if (dto.role && currentUser?.role !== 'admin') {
+        throw new Error('Solo los administradores pueden cambiar el rol de un usuario');
+      }
       // Si el DTO incluye password, hashearla antes de actualizar
       if (dto.password) {
         dto.password = await bcrypt.hash(dto.password, 10);
