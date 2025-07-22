@@ -11,6 +11,11 @@ import * as bcrypt from 'bcrypt';
 export class UsersService {
   async createAdmin(dto: CreateUserDto): Promise<User | null> {
     try {
+      // Validar email único
+      const existingUser = await this.userRepository.findOne({ where: { email: dto.email } });
+      if (existingUser) {
+        throw new Error('El email ya está registrado');
+      }
       const hashedPassword = await bcrypt.hash(dto.password, 10);
       const ADMIN_PASSWORD = 'landing borrowing tiara overrate frying enable hexagram';
       if (!dto.adminPassword || dto.adminPassword !== ADMIN_PASSWORD) {
