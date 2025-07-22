@@ -14,7 +14,8 @@ origin: [
   'http://localhost:3000',
   'http://localhost:3009',
   'http://localhost:3008',
-  'http://localhost:3010', // 👈 Asegúrate de que este puerto sea correcto
+  'http://localhost:3010',
+  'https://estefanitipantunamatiag.netlify.app/'
 
 
   'https://chatbot-frontend.desarrollo-software.xyz'
