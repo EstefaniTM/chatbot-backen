@@ -99,11 +99,11 @@ export class UsersController {
   // PRIVADO - Usuario solo puede editar su propio perfil o admin puede editar cualquier perfil
   @UseGuards(JwtAuthGuard, OwnershipGuard)
   @Put(':id')
-  async update(@Param('id') id: string, @Body() dto: UpdateUserDto) {
-    const userId = parseInt(id);
+  async update(@Param('id') id: string, @Body() dto: UpdateUserDto, @Req() req) {
+    const userId = Number(id);
     if (isNaN(userId)) throw new BadRequestException('Invalid user ID');
     
-    const user = await this.usersService.update(userId, dto);
+    const user = await this.usersService.update(userId, dto, req.user);
     if (!user) throw new NotFoundException('User not found');
     return new SuccessResponseDto('User updated successfully', user);
   }
