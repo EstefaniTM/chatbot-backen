@@ -1,3 +1,22 @@
+  async findAllByUser(userId: string, page = 1, limit = 10): Promise<{ data: Conversation[]; total: number } | null> {
+    try {
+      const skip = (page - 1) * limit;
+      const [data, total] = await Promise.all([
+        this.conversationModel
+          .find({ user: userId })
+          .sort({ started_at: -1 })
+          .skip(skip)
+          .limit(limit)
+          .populate(['messages', 'user'])
+          .exec(),
+        this.conversationModel.countDocuments({ user: userId }).exec(),
+      ]);
+      return { data, total };
+    } catch (err) {
+      console.error('Error retrieving conversations by user:', err);
+      return null;
+    }
+  }
 // ...eliminado, se agregará dentro de la clase...
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';

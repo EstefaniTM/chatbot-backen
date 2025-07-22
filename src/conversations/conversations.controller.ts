@@ -1,3 +1,20 @@
+  @UseGuards(JwtAuthGuard)
+  @Get('user')
+  async findAllByUser(
+    @Request() req,
+    @Query('page') page = 1,
+    @Query('limit') limit = 10,
+  ): Promise<SuccessResponseDto<{ data: Conversation[]; total: number }>> {
+    const userId = req.user.id;
+    const conversations = await this.conversationsService.findAllByUser(userId, Number(page), Number(limit));
+    if (!conversations) {
+      throw new InternalServerErrorException('Error retrieving user conversations');
+    }
+    return new SuccessResponseDto(
+      'User conversations retrieved successfully',
+      conversations,
+    );
+  }
 // ...existing imports y clase...
 import {
   Controller,
