@@ -22,6 +22,25 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 export class ConversationsController {
   constructor(private readonly conversationsService: ConversationsService) {}
 
+  // Nuevo endpoint: permite filtrar por cualquier usuario usando query param ?user=ID
+  @UseGuards(JwtAuthGuard)
+  @Get()
+  async findAllByUserId(
+    @Query('user') userId: string,
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 10,
+  ): Promise<SuccessResponseDto<{ data: Conversation[]; total: number }>> {
+    if (!userId) throw new InternalServerErrorException('userId es requerido');
+    const conversations = await this.conversationsService.findAllByUser(userId, Number(page), Number(limit));
+    if (!conversations) {
+      throw new InternalServerErrorException('Error retrieving user conversations');
+    }
+    return new SuccessResponseDto(
+      'User conversations retrieved successfully',
+      conversations,
+    );
+  }
+
   @UseGuards(JwtAuthGuard)
   @Get('user')
   async findAllByUser(
